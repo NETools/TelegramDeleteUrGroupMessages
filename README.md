@@ -3,9 +3,9 @@
 ## How to use?
 
 
-1.) Download zip, open .sln, run.
+1.) Download zip, open .sln, run.</br>
 2.) You will be required to type in api_id, api_hash.
-Obtain them by creating a standalone application (https://my.telegram.org/apps).
+Obtain them by creating a standalone application (https://my.telegram.org/apps).</br>
 3.) Type in tel. no. with prefix (e.g. +0011111111)
 4.) If it's your first log in you will be required to type in a verification code sent to your telegram, type it in, press enter.
 
