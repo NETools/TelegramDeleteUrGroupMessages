@@ -50,7 +50,7 @@ foreach (var (id, chat) in chats.chats)
             while (!done)
             {
                 var messages = await client.Messages_GetHistory(group.ToInputPeer(), offset);
-                Console.WriteLine($"Searching batch {i}");
+                Console.WriteLine($"Searching messages from offset {offset}");
                 var userMessages = messages.Messages.Where(p => p.From != null && p.From.ID == client.User.id)
                     .Select(p => (p.ID, p.ToString()));
 
