@@ -4,6 +4,8 @@ using TL;
 int api_code = ConsoleExtensions.ReadLineInt32("Type in api_id: ");
 string api_hash = ConsoleExtensions.ReadLineString("Type in api_hash: ");
 
+WTelegram.Helpers.Log = (a, b) => { };
+
 WTelegram.Client client = new WTelegram.Client(api_code, api_hash);
 
 string telNo = ConsoleExtensions.ReadLineString("Type in telphone number (+00xxxxxxxx): ");
@@ -23,11 +25,6 @@ async Task DoLogin(string loginInfo)
     Console.WriteLine($"We are logged-in as {client.User} (id {client.User.id})");
 }
 
-Console.ForegroundColor = ConsoleColor.Red;
-Console.Write("ONLY PRESS ENTER WHEN YOU WANT TO REMOVE YOUR HISTORY FROM TELEGRAM!!!");
-Console.ForegroundColor = ConsoleColor.Gray;
-
-Console.ReadLine();
 
 var chats = await client.Messages_GetAllChats();
 
@@ -42,11 +39,38 @@ foreach (var (id, chat) in chats.chats)
         case Channel group when group.IsGroup && !group.IsChannel:
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"{id}: Group {group.username}: {group.title}");
+            Console.Write($"Delete: {id}: Group {group.username}: {group.title} (type y for yes)? ");
+            Console.ForegroundColor = ConsoleColor.Gray;
+
+            var userMsg = Console.ReadLine();
+            if (userMsg != null && !userMsg.ToUpper().Equals("Y"))
+                continue;
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"Deleting: {id}: Group {group.username}: {group.title} (press escape to end searching your messages)!");
             Console.ForegroundColor = ConsoleColor.Gray;
 
             int offset = 0;
             bool done = false;
+            int numMessages = 0;
+
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    if (Console.ReadKey().Key == ConsoleKey.Escape)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.WriteLine("[*] Ending searching");
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        done = true;
+                        break;
+                    }
+                }
+            });
+
+            bool foundJoined = false;
+
             while (!done)
             {
                 var messages = await client.Messages_GetHistory(group.ToInputPeer(), offset);
@@ -54,15 +78,19 @@ foreach (var (id, chat) in chats.chats)
                 var userMessages = messages.Messages.Where(p => p.From != null && p.From.ID == client.User.id)
                     .Select(p => (p.ID, p.ToString()));
 
-                var deleteResult = await client.DeleteMessages(group.ToInputPeer(), userMessages.Select(p => p.ID).ToArray());
+                var messageIds = userMessages.Select(p => p.ID).ToArray();
+                var deleteResult = await client.DeleteMessages(group.ToInputPeer(), messageIds);
+                
+                numMessages += messageIds.Length;
+
                 userMessages.Select(p => p.Item2).ToList().ForEach(message =>
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.ForegroundColor = foundJoined ? ConsoleColor.DarkRed : ConsoleColor.Red;
                     Console.WriteLine($"DELETED: {message}");
                     Console.ForegroundColor = ConsoleColor.Gray;
 
                     if (message != null && message.Contains("[ChatAddUser]"))
-                        done = true;
+                        foundJoined = true;
                 });
 
                 offset = messages.Messages[messages.Messages.Length - 1].ID;
@@ -75,12 +103,8 @@ foreach (var (id, chat) in chats.chats)
             }
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"ALL YOUR MESSAGES DELETED FROM {group.title}");
+            Console.WriteLine($"A total of {numMessages} messages deleted from {group.title}");
             Console.ForegroundColor = ConsoleColor.Gray;
             break;
     }
 }
-
-Console.ForegroundColor = ConsoleColor.Green;
-Console.WriteLine($"DONE! YOU NEVER EXISTED ON TELEGRAM!");
-Console.ForegroundColor = ConsoleColor.Gray;
