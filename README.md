@@ -14,7 +14,7 @@ join the discussion group such that all your conversations are really included.
 
 The application will show you the currently viewed group. If you want to delete all your messages in that particular group type in y. The application then will look for all your messages in the group
 until you are done and press escape. Per iteration a maximum of 100 messages of yours will be deleted. If you wish to delete more than 100 messages dont press escape but keep it running until
-all of your messages are deleted.
+you think all of your messages are deleted.
 
 Congratulations, you were never on telegram.
 
